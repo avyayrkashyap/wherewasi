@@ -5,43 +5,63 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Book Reading Tracker</title>
     <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body>
     <div class="container">
-        <h1>Book Reading Tracker</h1>
-        
-        <form id="bookForm">
-            <div class="form-group">
-                <label for="username">Username:</label>
-                <input type="text" id="username" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="bookTitle">Book Title:</label>
-                <input type="text" id="bookTitle" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="author">Author:</label>
-                <input type="text" id="author" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="progress">Progress (%):</label>
-                <input type="number" id="progress" min="0" max="100" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="notes">Notes:</label>
-                <textarea id="notes" rows="4"></textarea>
-            </div>
-            
-            <button type="submit">Save Entry</button>
-        </form>
+        <header>
+            <h1><b>Now where was I?</b></h1>
+            <button id="addBookBtn" class="fab">
+                <span class="material-icons">add</span>
+            </button>
+        </header>
 
-        <div id="entriesList">
-            <h2>Your Reading List</h2>
-            <div id="entries"></div>
+        <div id="entries" class="book-grid"></div>
+    </div>
+
+    <!-- Modal -->
+    <div id="bookModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Add New Book</h2>
+                <span class="material-icons close-modal">close</span>
+            </div>
+            <form id="bookForm">
+                <input type="hidden" id="editIndex" value="">
+                <div class="form-group">
+                    <input type="text" id="username" required>
+                    <label for="username">Your Name</label>
+                </div>
+                
+                <div class="form-group">
+                    <input type="text" id="bookTitle" required>
+                    <label for="bookTitle">Book Title</label>
+                </div>
+                
+                <div class="form-group">
+                    <input type="text" id="author" required>
+                    <label for="author">Author</label>
+                </div>
+                
+                <div class="form-group pages-group">
+                    <div>
+                        <input type="number" id="pagesRead" required min="0">
+                        <label for="pagesRead">Pages Read</label>
+                    </div>
+                    <div>
+                        <input type="number" id="totalPages" required min="1">
+                        <label for="totalPages">Total Pages</label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <textarea id="notes" rows="4"></textarea>
+                    <label for="notes">Notes</label>
+                </div>
+                
+                <button type="submit" class="submit-btn">Save Book</button>
+            </form>
         </div>
     </div>
     <script src="script.js"></script>
