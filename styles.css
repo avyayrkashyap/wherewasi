@@ -111,12 +111,6 @@ h1 {
 .entry-actions {
     display: flex;
     gap: 0.5rem;
-    opacity: 0;
-    transition: opacity 0.2s ease;
-}
-
-.entry:hover .entry-actions {
-    opacity: 1;
 }
 
 .icon-button {
