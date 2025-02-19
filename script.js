@@ -17,7 +17,7 @@ document.querySelector('.close-modal').addEventListener('click', () => {
 // Load books
 async function loadBooks() {
     try {
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
             .from('books')
             .select('*')
             .order('created_at', { ascending: false });
@@ -35,7 +35,7 @@ async function saveBook(bookData, editId = null) {
     try {
         if (editId) {
             // Update existing book
-            const { error } = await supabase
+            const { error } = await supabaseClient
                 .from('books')
                 .update({
                     username: bookData.username,
@@ -51,7 +51,7 @@ async function saveBook(bookData, editId = null) {
             if (error) throw error;
         } else {
             // Insert new book
-            const { error } = await supabase
+            const { error } = await supabaseClient
                 .from('books')
                 .insert([{
                     username: bookData.username,
@@ -76,7 +76,7 @@ async function saveBook(bookData, editId = null) {
 // Delete book
 async function deleteBook(id) {
     try {
-        const { error } = await supabase
+        const { error } = await supabaseClient
             .from('books')
             .delete()
             .eq('id', id);
@@ -129,12 +129,16 @@ function displayEntries(entries) {
     entriesDiv.innerHTML = '';
     
     entries.forEach((entry, index) => {
+        // Format the date
+        const date = new Date(entry.created_at);
+        const formattedDate = date.toLocaleDateString('en-GB'); // DD/MM/YYYY format
+        
         const entryElement = document.createElement('div');
         entryElement.className = 'entry';
         entryElement.innerHTML = `
             <div class="entry-header">
                 <div class="title-group">
-                    <h3>${entry.bookTitle}</h3>
+                    <h3>${entry.book_title}</h3>
                     <p class="author">by ${entry.author}</p>
                 </div>
                 <div class="pill reader">
@@ -146,19 +150,19 @@ function displayEntries(entries) {
                 <div class="progress-bar">
                     <div class="progress-fill" style="width: ${entry.progress}%"></div>
                 </div>
-                <p><strong>Progress:</strong> ${entry.pagesRead} of ${entry.totalPages} pages (${entry.progress}%)</p>
+                <p><strong>Progress:</strong> ${entry.pages_read} of ${entry.total_pages} pages (${entry.progress}%)</p>
                 ${entry.notes ? `<p class="notes"><strong>Notes:</strong> ${entry.notes}</p>` : ''}
             </div>
             <div class="entry-footer">
                 <div class="pill date">
                     <span class="material-icons">calendar_today</span>
-                    ${entry.created_at}
+                    ${formattedDate}
                 </div>
                 <div class="entry-actions">
-                    <button class="icon-button edit-btn" data-index="${index}">
+                    <button class="icon-button edit-btn" data-id="${entry.id}">
                         <span class="material-icons">edit</span>
                     </button>
-                    <button class="icon-button delete-btn" data-index="${index}">
+                    <button class="icon-button delete-btn" data-id="${entry.id}">
                         <span class="material-icons">delete</span>
                     </button>
                 </div>
@@ -178,31 +182,42 @@ function displayEntries(entries) {
 }
 
 function handleEdit(e) {
-    const index = e.currentTarget.dataset.index;
-    const entries = JSON.parse(localStorage.getItem('bookEntries')) || [];
-    const entry = entries[index];
+    const id = e.currentTarget.dataset.id;
+    loadBookForEdit(id);
+}
 
-    // Populate form with existing data
-    document.getElementById('username').value = entry.username;
-    document.getElementById('bookTitle').value = entry.bookTitle;
-    document.getElementById('author').value = entry.author;
-    document.getElementById('pagesRead').value = entry.pagesRead;
-    document.getElementById('totalPages').value = entry.totalPages;
-    document.getElementById('notes').value = entry.notes;
-    document.getElementById('editIndex').value = index;
+async function loadBookForEdit(id) {
+    try {
+        const { data, error } = await supabaseClient
+            .from('books')
+            .select('*')
+            .eq('id', id)
+            .single();
 
-    // Update modal title
-    document.getElementById('modalTitle').textContent = 'Edit Book';
-    
-    // Show modal
-    document.getElementById('bookModal').style.display = 'block';
+        if (error) throw error;
+
+        // Populate form with existing data
+        document.getElementById('username').value = data.username;
+        document.getElementById('bookTitle').value = data.book_title;
+        document.getElementById('author').value = data.author;
+        document.getElementById('pagesRead').value = data.pages_read;
+        document.getElementById('totalPages').value = data.total_pages;
+        document.getElementById('notes').value = data.notes || '';
+        document.getElementById('editIndex').value = data.id;
+
+        // Update modal title
+        document.getElementById('modalTitle').textContent = 'Edit Book';
+        
+        // Show modal
+        document.getElementById('bookModal').style.display = 'block';
+    } catch (error) {
+        console.error('Error loading book for edit:', error.message);
+    }
 }
 
 function handleDelete(e) {
     if (confirm('Are you sure you want to delete this book?')) {
-        const index = e.currentTarget.dataset.index;
-        const entries = JSON.parse(localStorage.getItem('bookEntries')) || [];
-        const id = entries[index].id;
+        const id = e.currentTarget.dataset.id;
         deleteBook(id);
     }
 }
@@ -223,7 +238,7 @@ window.onclick = function(event) {
 document.addEventListener('DOMContentLoaded', loadBooks);
 
 // Subscribe to real-time changes
-supabase
+supabaseClient
     .channel('public:books')
     .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'books' }, 
