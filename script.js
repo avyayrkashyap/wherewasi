@@ -14,7 +14,84 @@ document.querySelector('.close-modal').addEventListener('click', () => {
     document.getElementById('bookModal').style.display = 'none';
 });
 
-document.getElementById('bookForm').addEventListener('submit', function(e) {
+// Load books
+async function loadBooks() {
+    try {
+        const { data, error } = await supabase
+            .from('books')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        
+        displayEntries(data);
+    } catch (error) {
+        console.error('Error loading books:', error.message);
+    }
+}
+
+// Add/Edit book
+async function saveBook(bookData, editId = null) {
+    try {
+        if (editId) {
+            // Update existing book
+            const { error } = await supabase
+                .from('books')
+                .update({
+                    username: bookData.username,
+                    book_title: bookData.bookTitle,
+                    author: bookData.author,
+                    pages_read: bookData.pagesRead,
+                    total_pages: bookData.totalPages,
+                    progress: bookData.progress,
+                    notes: bookData.notes
+                })
+                .eq('id', editId);
+
+            if (error) throw error;
+        } else {
+            // Insert new book
+            const { error } = await supabase
+                .from('books')
+                .insert([{
+                    username: bookData.username,
+                    book_title: bookData.bookTitle,
+                    author: bookData.author,
+                    pages_read: bookData.pagesRead,
+                    total_pages: bookData.totalPages,
+                    progress: bookData.progress,
+                    notes: bookData.notes
+                }]);
+
+            if (error) throw error;
+        }
+
+        // Reload books after save
+        await loadBooks();
+    } catch (error) {
+        console.error('Error saving book:', error.message);
+    }
+}
+
+// Delete book
+async function deleteBook(id) {
+    try {
+        const { error } = await supabase
+            .from('books')
+            .delete()
+            .eq('id', id);
+
+        if (error) throw error;
+
+        // Reload books after delete
+        await loadBooks();
+    } catch (error) {
+        console.error('Error deleting book:', error.message);
+    }
+}
+
+// Update form submit handler
+document.getElementById('bookForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     
     const pagesRead = parseInt(document.getElementById('pagesRead').value);
@@ -27,44 +104,31 @@ document.getElementById('bookForm').addEventListener('submit', function(e) {
     
     const progress = Math.round((pagesRead / totalPages) * 100);
     
-    const entry = {
+    const bookData = {
         username: document.getElementById('username').value,
         bookTitle: document.getElementById('bookTitle').value,
         author: document.getElementById('author').value,
         pagesRead: pagesRead,
         totalPages: totalPages,
         progress: progress,
-        notes: document.getElementById('notes').value,
-        date: new Date().toLocaleDateString()
+        notes: document.getElementById('notes').value
     };
     
-    let entries = JSON.parse(localStorage.getItem('bookEntries')) || [];
-    const editIndex = document.getElementById('editIndex').value;
-    
-    if (editIndex !== '') {
-        // Edit existing entry
-        entries[entries.length - 1 - editIndex] = entry;
-        document.getElementById('editIndex').value = '';
-        document.getElementById('modalTitle').textContent = 'Add New Book';
-    } else {
-        // Add new entry
-        entries.push(entry);
-    }
-    
-    localStorage.setItem('bookEntries', JSON.stringify(entries));
+    const editId = document.getElementById('editIndex').value;
+    await saveBook(bookData, editId || null);
     
     this.reset();
+    document.getElementById('editIndex').value = '';
+    document.getElementById('modalTitle').textContent = 'Add New Book';
     document.getElementById('bookModal').style.display = 'none';
-    displayEntries();
 });
 
-function displayEntries() {
+function displayEntries(entries) {
     const entriesDiv = document.getElementById('entries');
-    const entries = JSON.parse(localStorage.getItem('bookEntries')) || [];
     
     entriesDiv.innerHTML = '';
     
-    entries.reverse().forEach((entry, index) => {
+    entries.forEach((entry, index) => {
         const entryElement = document.createElement('div');
         entryElement.className = 'entry';
         entryElement.innerHTML = `
@@ -88,7 +152,7 @@ function displayEntries() {
             <div class="entry-footer">
                 <div class="pill date">
                     <span class="material-icons">calendar_today</span>
-                    ${entry.date}
+                    ${entry.created_at}
                 </div>
                 <div class="entry-actions">
                     <button class="icon-button edit-btn" data-index="${index}">
@@ -116,7 +180,7 @@ function displayEntries() {
 function handleEdit(e) {
     const index = e.currentTarget.dataset.index;
     const entries = JSON.parse(localStorage.getItem('bookEntries')) || [];
-    const entry = entries[entries.length - 1 - index]; // Adjust for reverse order
+    const entry = entries[index];
 
     // Populate form with existing data
     document.getElementById('username').value = entry.username;
@@ -138,9 +202,8 @@ function handleDelete(e) {
     if (confirm('Are you sure you want to delete this book?')) {
         const index = e.currentTarget.dataset.index;
         const entries = JSON.parse(localStorage.getItem('bookEntries')) || [];
-        entries.splice(entries.length - 1 - index, 1); // Adjust for reverse order
-        localStorage.setItem('bookEntries', JSON.stringify(entries));
-        displayEntries();
+        const id = entries[index].id;
+        deleteBook(id);
     }
 }
 
@@ -156,5 +219,16 @@ window.onclick = function(event) {
     }
 }
 
-// Display entries when page loads
-displayEntries(); 
+// Load books when page loads
+document.addEventListener('DOMContentLoaded', loadBooks);
+
+// Subscribe to real-time changes
+supabase
+    .channel('public:books')
+    .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'books' }, 
+        payload => {
+            loadBooks();
+        }
+    )
+    .subscribe(); 
