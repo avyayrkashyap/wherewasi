@@ -78,14 +78,6 @@ function displayEntries() {
                     ${entry.username}
                 </div>
             </div>
-            <div class="entry-actions">
-                <button class="icon-button edit-btn" data-index="${index}">
-                    <span class="material-icons">edit</span>
-                </button>
-                <button class="icon-button delete-btn" data-index="${index}">
-                    <span class="material-icons">delete</span>
-                </button>
-            </div>
             <div class="entry-content">
                 <div class="progress-bar">
                     <div class="progress-fill" style="width: ${entry.progress}%"></div>
@@ -97,6 +89,14 @@ function displayEntries() {
                 <div class="pill date">
                     <span class="material-icons">calendar_today</span>
                     ${entry.date}
+                </div>
+                <div class="entry-actions">
+                    <button class="icon-button edit-btn" data-index="${index}">
+                        <span class="material-icons">edit</span>
+                    </button>
+                    <button class="icon-button delete-btn" data-index="${index}">
+                        <span class="material-icons">delete</span>
+                    </button>
                 </div>
             </div>
         `;

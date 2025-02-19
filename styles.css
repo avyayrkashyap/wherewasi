@@ -103,12 +103,12 @@ h1 {
 
 .entry-footer {
     margin-top: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .entry-actions {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
     display: flex;
     gap: 0.5rem;
     opacity: 0;
