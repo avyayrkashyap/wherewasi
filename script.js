@@ -39,12 +39,13 @@ async function saveBook(bookData, editId = null) {
                 .from('books')
                 .update({
                     username: bookData.username,
-                    book_title: bookData.bookTitle,
+                    book_title: bookData.book_title,
                     author: bookData.author,
-                    pages_read: bookData.pagesRead,
-                    total_pages: bookData.totalPages,
+                    pages_read: bookData.pages_read,
+                    total_pages: bookData.total_pages,
                     progress: bookData.progress,
-                    notes: bookData.notes
+                    notes: bookData.notes,
+                    cover_url: bookData.cover_url
                 })
                 .eq('id', editId);
 
@@ -55,12 +56,13 @@ async function saveBook(bookData, editId = null) {
                 .from('books')
                 .insert([{
                     username: bookData.username,
-                    book_title: bookData.bookTitle,
+                    book_title: bookData.book_title,
                     author: bookData.author,
-                    pages_read: bookData.pagesRead,
-                    total_pages: bookData.totalPages,
+                    pages_read: bookData.pages_read,
+                    total_pages: bookData.total_pages,
                     progress: bookData.progress,
-                    notes: bookData.notes
+                    notes: bookData.notes,
+                    cover_url: bookData.cover_url
                 }]);
 
             if (error) throw error;
@@ -106,12 +108,13 @@ document.getElementById('bookForm').addEventListener('submit', async function(e)
     
     const bookData = {
         username: document.getElementById('username').value,
-        bookTitle: document.getElementById('bookTitle').value,
+        book_title: document.getElementById('bookSearch').value,
         author: document.getElementById('author').value,
-        pagesRead: pagesRead,
-        totalPages: totalPages,
+        pages_read: pagesRead,
+        total_pages: totalPages,
         progress: progress,
-        notes: document.getElementById('notes').value
+        notes: document.getElementById('notes').value,
+        cover_url: document.getElementById('coverUrl').value
     };
     
     const editId = document.getElementById('editIndex').value;
@@ -129,17 +132,24 @@ function displayEntries(entries) {
     entriesDiv.innerHTML = '';
     
     entries.forEach((entry, index) => {
-        // Format the date
         const date = new Date(entry.created_at);
-        const formattedDate = date.toLocaleDateString('en-GB'); // DD/MM/YYYY format
+        const formattedDate = date.toLocaleDateString('en-GB');
         
         const entryElement = document.createElement('div');
         entryElement.className = 'entry';
         entryElement.innerHTML = `
             <div class="entry-header">
-                <div class="title-group">
-                    <h3>${entry.book_title}</h3>
-                    <p class="author">by ${entry.author}</p>
+                <div class="book-info">
+                    ${entry.cover_url ? `
+                        <div class="book-cover">
+                            <img src="${entry.cover_url}" 
+                                 alt="Cover of ${entry.book_title}">
+                        </div>
+                    ` : ''}
+                    <div class="title-group">
+                        <h3>${entry.book_title}</h3>
+                        <p class="author">by ${entry.author}</p>
+                    </div>
                 </div>
                 <div class="pill reader">
                     <span class="material-icons">person_outline</span>
@@ -198,12 +208,13 @@ async function loadBookForEdit(id) {
 
         // Populate form with existing data
         document.getElementById('username').value = data.username;
-        document.getElementById('bookTitle').value = data.book_title;
+        document.getElementById('bookSearch').value = data.book_title;
         document.getElementById('author').value = data.author;
         document.getElementById('pagesRead').value = data.pages_read;
         document.getElementById('totalPages').value = data.total_pages;
         document.getElementById('notes').value = data.notes || '';
         document.getElementById('editIndex').value = data.id;
+        document.getElementById('coverUrl').value = data.cover_url || '';
 
         // Update modal title
         document.getElementById('modalTitle').textContent = 'Edit Book';
@@ -246,4 +257,83 @@ supabaseClient
             loadBooks();
         }
     )
-    .subscribe(); 
+    .subscribe();
+
+// Add this to your existing JavaScript
+let searchTimeout;
+
+document.getElementById('bookSearch').addEventListener('input', function(e) {
+    clearTimeout(searchTimeout);
+    const searchTerm = e.target.value.trim();
+    
+    if (searchTerm.length < 3) {
+        document.getElementById('searchResults').style.display = 'none';
+        return;
+    }
+
+    searchTimeout = setTimeout(() => {
+        searchBooks(searchTerm);
+    }, 500);
+});
+
+async function searchBooks(query) {
+    try {
+        const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=5`);
+        const data = await response.json();
+        
+        const searchResults = document.getElementById('searchResults');
+        searchResults.innerHTML = '';
+        searchResults.style.display = 'block';
+        
+        if (data.items && data.items.length > 0) {
+            data.items.forEach(book => {
+                const volumeInfo = book.volumeInfo;
+                const thumbnail = volumeInfo.imageLinks?.thumbnail || 'placeholder-image-url';
+                
+                const resultItem = document.createElement('div');
+                resultItem.className = 'search-result-item';
+                resultItem.innerHTML = `
+                    <img src="${thumbnail}" alt="Book cover" onerror="this.src='placeholder-image-url'">
+                    <div class="book-info">
+                        <h4>${volumeInfo.title}</h4>
+                        <p>${volumeInfo.authors ? volumeInfo.authors.join(', ') : 'Unknown Author'}</p>
+                        ${volumeInfo.pageCount ? `<p>${volumeInfo.pageCount} pages</p>` : ''}
+                    </div>
+                `;
+                
+                resultItem.addEventListener('click', () => {
+                    fillBookDetails(volumeInfo);
+                    searchResults.style.display = 'none';
+                });
+                
+                searchResults.appendChild(resultItem);
+            });
+        } else {
+            searchResults.innerHTML = '<div class="search-result-item">No books found</div>';
+        }
+    } catch (error) {
+        console.error('Error searching books:', error);
+        document.getElementById('searchResults').innerHTML = 
+            '<div class="search-result-item">Error searching books</div>';
+    }
+}
+
+function fillBookDetails(volumeInfo) {
+    document.getElementById('bookSearch').value = volumeInfo.title;
+    document.getElementById('author').value = volumeInfo.authors ? volumeInfo.authors[0] : '';
+    if (volumeInfo.pageCount) {
+        document.getElementById('totalPages').value = volumeInfo.pageCount;
+    }
+    // Store the cover URL in a hidden input
+    document.getElementById('coverUrl').value = volumeInfo.imageLinks?.thumbnail || '';
+}
+
+// Close search results when clicking outside
+document.addEventListener('click', function(e) {
+    const searchResults = document.getElementById('searchResults');
+    const searchInput = document.getElementById('bookSearch');
+    
+    if (!searchResults.contains(e.target) && e.target !== searchInput) {
+        searchResults.style.display = 'none';
+    }
+}); 
