@@ -58,8 +58,13 @@
                 <input type="hidden" id="editIndex" value="">
                 <input type="hidden" id="coverUrl" value="">
                 <div class="form-group">
-                    <input type="text" id="username" required>
-                    <label for="username">Your Name</label>
+                    <div class="username-input-container">
+                        <input type="text" id="username" required>
+                        <label for="username">Your Name</label>
+                        <div id="usernameDropdown" class="username-dropdown">
+                            <!-- Existing users will be populated here -->
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="form-group">
@@ -99,16 +104,35 @@
                 <input type="hidden" id="noteBookId">
                 <h3 id="noteBookTitle" class="note-book-title"></h3>
                 
-                <button type="button" id="addNoteBtn" class="add-note-btn">
-                    <span class="material-icons">add</span>
-                    New Note
-                </button>
-                
-                <div id="notesContainer" class="notes-container">
-                    <!-- Notes will be dynamically added here -->
+                <div class="modal-content-scrollable">
+                    <button type="button" id="addNoteBtn" class="add-note-btn">
+                        <span class="material-icons">add</span>
+                        New Note
+                    </button>
+                    
+                    <div id="notesContainer" class="notes-container">
+                        <!-- Notes will be dynamically added here -->
+                    </div>
                 </div>
                 
-                <button type="submit" class="submit-btn">Save All Notes</button>
+                <div class="modal-footer">
+                    <div class="complete-checkbox">
+                        <label class="mdc-checkbox">
+                            <input type="checkbox" id="completeBookCheckbox" class="mdc-checkbox__native-control">
+                            <div class="mdc-checkbox__background">
+                                <svg class="mdc-checkbox__checkmark" viewBox="0 0 28 28">
+                                    <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
+                                </svg>
+                                <div class="mdc-checkbox__mixedmark"></div>
+                            </div>
+                            <div class="mdc-checkbox__ripple"></div>
+                        </label>
+                        <label for="completeBookCheckbox" class="checkbox-label">
+                            Mark as Complete
+                        </label>
+                    </div>
+                    <button type="submit" class="submit-btn">Save All Notes</button>
+                </div>
             </form>
         </div>
     </div>

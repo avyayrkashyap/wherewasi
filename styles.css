@@ -69,18 +69,25 @@ h1 {
 .entry {
     position: relative;
     background-color: white;
-    border-radius: 8px;
+    border-radius: 4px;
     padding: 1.25rem;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    transition: all 0.3s ease;
     display: flex;
     flex-direction: column;
     min-height: 200px;
+    border-left: 4px solid transparent;
+    transition: border-color 0.3s ease;
 }
 
 .entry:hover {
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    transform: translateY(-2px);
+    border-left-color: #1a237e;
+}
+
+.entry.completed:hover {
+    border-left-color: #4caf50;
+}
+
+.entry.completed {
+    border-left-color: transparent;
 }
 
 .entry-header {
@@ -149,8 +156,7 @@ h1 {
 }
 
 .entry-actions {
-    display: flex;
-    gap: 0.5rem;
+    position: relative;
 }
 
 .icon-button {
@@ -197,6 +203,30 @@ h1 {
     background-color: #4caf50;  /* Material Design green */
 }
 
+.progress-container {
+    display: block;
+}
+
+.complete-indicator {
+    display: none;
+    align-items: center;
+    gap: 0.5rem;
+    color: #4caf50;
+    font-weight: 500;
+}
+
+.complete-indicator .material-icons {
+    font-size: 20px;
+}
+
+.entry.completed .progress-container {
+    display: none;
+}
+
+.entry.completed .complete-indicator {
+    display: flex;
+}
+
 /* Modal styles */
 .modal {
     display: none;
@@ -221,7 +251,12 @@ h1 {
     padding: 2rem;
     display: flex;
     flex-direction: column;
+}
+
+.modal-content-scrollable {
+    flex: 1;
     overflow-y: auto;
+    margin-bottom: 1.5rem;
 }
 
 .modal-header {
@@ -599,7 +634,43 @@ h1 {
 /* Responsive adjustments */
 @media (max-width: 600px) {
     .modal {
+        top: auto;
+        bottom: -100%;
+        right: 0;
+        left: 0;
         max-width: 100%;
+        height: auto;
+        max-height: 90vh;
+        border-radius: 16px 16px 0 0;
+        transform: translateY(100%);
+        transition: transform 0.3s ease;
+    }
+
+    .modal.active {
+        transform: translateY(0);
+        bottom: 0;
+    }
+
+    .modal-content {
+        padding: 1.5rem;
+    }
+
+    .modal-header {
+        margin-bottom: 1.5rem;
+    }
+
+    .modal-content-scrollable {
+        max-height: calc(90vh - 200px);
+        overflow-y: auto;
+    }
+
+    .modal-footer {
+        position: sticky;
+        bottom: 0;
+        background: white;
+        padding: 1rem 0;
+        margin-top: 1rem;
+        border-top: 1px solid #eee;
     }
 }
 
@@ -618,4 +689,255 @@ h1 {
 
 .reader .material-icons {
     font-size: 16px;
+}
+
+.username-input-container {
+    position: relative;
+    width: 100%;
+}
+
+.username-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-top: 4px;
+    max-height: 200px;
+    overflow-y: auto;
+    display: none;
+    z-index: 1000;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.username-dropdown.active {
+    display: block;
+}
+
+.username-dropdown-item {
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.username-dropdown-item:hover {
+    background-color: #f5f5f5;
+}
+
+.modal-footer {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #eee;
+    margin-top: auto;
+}
+
+.complete-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: fit-content;
+}
+
+.mdc-checkbox {
+    display: inline-flex;
+    position: relative;
+    flex: 0 0 18px;
+    box-sizing: content-box;
+    width: 18px;
+    height: 18px;
+    padding: 11px;
+    cursor: pointer;
+    will-change: opacity, transform, border-color, color;
+}
+
+.mdc-checkbox__native-control {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    opacity: 0;
+    cursor: inherit;
+    z-index: 1;
+}
+
+.mdc-checkbox__background {
+    display: inline-flex;
+    position: absolute;
+    left: 11px;
+    right: 0;
+    top: 11px;
+    bottom: 0;
+    box-sizing: border-box;
+    width: 18px;
+    height: 18px;
+    border: 2px solid #5f6368;
+    border-radius: 2px;
+    background-color: transparent;
+    transition: border-color 90ms cubic-bezier(0.4, 0, 0.6, 1),
+                background-color 90ms cubic-bezier(0.4, 0, 0.6, 1);
+}
+
+.mdc-checkbox__native-control:checked ~ .mdc-checkbox__background {
+    border-color: #4caf50;
+    background-color: #4caf50;
+}
+
+.mdc-checkbox__checkmark {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 18px;
+    height: 18px;
+    color: white;
+    opacity: 0;
+    transition: opacity 90ms cubic-bezier(0.4, 0, 0.6, 1);
+}
+
+.mdc-checkbox__native-control:checked ~ .mdc-checkbox__background .mdc-checkbox__checkmark {
+    opacity: 1;
+}
+
+.mdc-checkbox__checkmark-path {
+    stroke: currentColor;
+    stroke-width: 3.12px;
+    stroke-dashoffset: 29.7833385;
+    stroke-dasharray: 29.7833385;
+    transition: stroke-dashoffset 90ms cubic-bezier(0.4, 0, 0.6, 1);
+}
+
+.mdc-checkbox__native-control:checked ~ .mdc-checkbox__background .mdc-checkbox__checkmark-path {
+    stroke-dashoffset: 0;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #666;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.checkbox-label .material-icons {
+    font-size: 20px;
+    color: #4caf50;
+}
+
+.mdc-checkbox__ripple {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.modal-footer .submit-btn {
+    width: 100%;
+}
+
+.kebab-menu-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+    transition: all 0.3s ease;
+}
+
+.kebab-menu-btn:hover {
+    background-color: rgba(0,0,0,0.1);
+}
+
+.kebab-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background-color: white;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 0.5rem 0;
+    min-width: 160px;
+    display: none;
+    z-index: 1000;
+}
+
+/* Mobile bottom sheet styles */
+@media (max-width: 600px) {
+    .kebab-menu {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        top: auto;
+        width: 100%;
+        border-radius: 16px 16px 0 0;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        transform: translateY(100%);
+        transition: transform 0.3s ease;
+        padding: 1rem 0;
+        max-height: 50vh;
+        overflow-y: auto;
+    }
+
+    .kebab-menu.active {
+        transform: translateY(0);
+    }
+
+    .menu-item {
+        padding: 1rem 1.5rem;
+        font-size: 1rem;
+    }
+
+    .menu-item .material-icons {
+        font-size: 24px;
+    }
+}
+
+.kebab-menu.active {
+    display: block;
+}
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #333;
+    font-size: 0.9rem;
+    text-align: left;
+    transition: background-color 0.2s;
+}
+
+.menu-item:hover {
+    background-color: #f5f5f5;
+}
+
+.menu-item .material-icons {
+    font-size: 18px;
+    color: #666;
+}
+
+.menu-item.delete-btn {
+    color: #d32f2f;
+}
+
+.menu-item.delete-btn .material-icons {
+    color: #d32f2f;
 } 

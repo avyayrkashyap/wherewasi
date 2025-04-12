@@ -42,6 +42,7 @@ let allUsers = new Set();
 async function loadBooks() {
     try {
         await updateUsersList(); // Update users list first
+        initializeUsernameDropdown(); // Initialize username dropdown
         await filterAndDisplayBooks(); // Then filter and display books
         initializeNoteScrolling(); // Initialize scrolling after books are loaded
     } catch (error) {
@@ -131,7 +132,7 @@ document.getElementById('bookForm').addEventListener('submit', async function(e)
     };
     
     const editId = document.getElementById('editIndex').value;
-    await saveBook(bookData, editId || null);
+    await saveBook(bookData, editId ? editId : null);
     
     this.reset();
     document.getElementById('editIndex').value = '';
@@ -159,7 +160,7 @@ async function handleNote(e) {
     try {
         const { data, error } = await supabaseClient
             .from('books')
-            .select('notes, book_title')
+            .select('notes, book_title, progress')
             .eq('id', id)
             .single();
 
@@ -168,6 +169,11 @@ async function handleNote(e) {
         document.getElementById('noteBookTitle').textContent = data.book_title;
         const notesContainer = document.getElementById('notesContainer');
         notesContainer.innerHTML = ''; // Clear existing notes
+
+        // Update checkbox state
+        const completeCheckbox = document.getElementById('completeBookCheckbox');
+        completeCheckbox.dataset.bookId = id;
+        completeCheckbox.checked = data.progress === 100;
 
         // Handle both old and new note formats
         let existingNotes = [];
@@ -306,10 +312,16 @@ function displayEntries(entries) {
                 </div>
             </div>
             <div class="entry-content">
-                <div class="progress-bar">
-                    <div class="progress-fill ${entry.progress === 100 ? 'complete' : ''}" style="width: ${entry.progress}%"></div>
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${entry.progress}%"></div>
+                    </div>
+                    <p><strong>Progress:</strong> ${entry.pages_read} of ${entry.total_pages} pages (${entry.progress}%)</p>
                 </div>
-                <p><strong>Progress:</strong> ${entry.pages_read} of ${entry.total_pages} pages (${entry.progress}%)</p>
+                <div class="complete-indicator">
+                    <span class="material-icons">check_circle</span>
+                    <span>Complete</span>
+                </div>
                 ${notesHtml}
             </div>
             <div class="entry-footer">
@@ -318,33 +330,63 @@ function displayEntries(entries) {
                     ${new Date(entry.created_at).toLocaleDateString('en-GB')}
                 </div>
                 <div class="entry-actions">
-                    <button class="icon-button note-btn" data-id="${entry.id}" title="Add Note">
-                        <span class="material-icons">note_add</span>
+                    <button class="kebab-menu-btn" data-id="${entry.id}">
+                        <span class="material-icons">more_vert</span>
                     </button>
-                    <button class="icon-button edit-btn" data-id="${entry.id}" title="Edit">
-                        <span class="material-icons">edit</span>
-                    </button>
-                    <button class="icon-button delete-btn" data-id="${entry.id}" title="Delete">
-                        <span class="material-icons">delete</span>
-                    </button>
+                    <div class="kebab-menu" data-id="${entry.id}">
+                        <button class="menu-item note-btn" data-id="${entry.id}">
+                            <span class="material-icons">note_add</span>
+                            Add Note
+                        </button>
+                        <button class="menu-item edit-btn" data-id="${entry.id}">
+                            <span class="material-icons">edit</span>
+                            Edit
+                        </button>
+                        <button class="menu-item delete-btn" data-id="${entry.id}">
+                            <span class="material-icons">delete</span>
+                            Delete
+                        </button>
+                    </div>
                 </div>
             </div>
         `;
         
         entriesDiv.appendChild(entryElement);
-    });
 
-    // Add your existing event listeners
-    document.querySelectorAll('.edit-btn').forEach(btn => {
-        btn.addEventListener('click', handleEdit);
-    });
+        // Add this after creating the entry element
+        if (entry.progress === 100) {
+            entryElement.classList.add('completed');
+        }
 
-    document.querySelectorAll('.delete-btn').forEach(btn => {
-        btn.addEventListener('click', handleDelete);
-    });
+        // Add kebab menu event listeners
+        const kebabBtn = entryElement.querySelector('.kebab-menu-btn');
+        const kebabMenu = entryElement.querySelector('.kebab-menu');
+        
+        kebabBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            // Close all other open menus
+            document.querySelectorAll('.kebab-menu').forEach(menu => {
+                if (menu !== kebabMenu) {
+                    menu.classList.remove('active');
+                }
+            });
+            kebabMenu.classList.toggle('active');
+        });
 
-    document.querySelectorAll('.note-btn').forEach(btn => {
-        btn.addEventListener('click', handleNote);
+        // Close menu when clicking outside or scrolling
+        const closeMenu = (e) => {
+            if (!kebabMenu.contains(e.target) && !kebabBtn.contains(e.target)) {
+                kebabMenu.classList.remove('active');
+            }
+        };
+
+        document.addEventListener('click', closeMenu);
+        document.addEventListener('scroll', closeMenu);
+
+        // Add your existing event listeners for menu items
+        entryElement.querySelector('.note-btn').addEventListener('click', handleNote);
+        entryElement.querySelector('.edit-btn').addEventListener('click', handleEdit);
+        entryElement.querySelector('.delete-btn').addEventListener('click', handleDelete);
     });
 }
 
@@ -362,6 +404,9 @@ async function loadBookForEdit(id) {
             .single();
 
         if (error) throw error;
+
+        // Set the edit index
+        document.getElementById('editIndex').value = id;
 
         // Populate form with existing data
         document.getElementById('username').value = data.username;
@@ -651,3 +696,75 @@ function initializeNoteScrolling() {
         });
     });
 }
+
+// Add this function to handle username dropdown
+function initializeUsernameDropdown() {
+    const usernameInput = document.getElementById('username');
+    const usernameDropdown = document.getElementById('usernameDropdown');
+    
+    // Show dropdown when input is focused
+    usernameInput.addEventListener('focus', () => {
+        updateUsernameDropdown();
+        usernameDropdown.classList.add('active');
+    });
+    
+    // Hide dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!usernameInput.contains(e.target) && !usernameDropdown.contains(e.target)) {
+            usernameDropdown.classList.remove('active');
+        }
+    });
+    
+    // Handle input changes
+    usernameInput.addEventListener('input', () => {
+        updateUsernameDropdown();
+    });
+}
+
+function updateUsernameDropdown() {
+    const usernameInput = document.getElementById('username');
+    const usernameDropdown = document.getElementById('usernameDropdown');
+    const searchTerm = usernameInput.value.toLowerCase();
+    
+    // Clear existing dropdown items
+    usernameDropdown.innerHTML = '';
+    
+    // Filter and display matching users
+    Array.from(allUsers)
+        .filter(username => username.toLowerCase().includes(searchTerm))
+        .forEach(username => {
+            const item = document.createElement('div');
+            item.className = 'username-dropdown-item';
+            item.textContent = username;
+            item.addEventListener('click', () => {
+                usernameInput.value = username;
+                usernameDropdown.classList.remove('active');
+            });
+            usernameDropdown.appendChild(item);
+        });
+}
+
+// Update the markBookAsComplete function
+async function markBookAsComplete(bookId, isComplete) {
+    try {
+        const { error } = await supabaseClient
+            .from('books')
+            .update({ progress: isComplete ? 100 : 0 })
+            .eq('id', bookId);
+
+        if (error) throw error;
+        
+        // Reload books to update the progress bar
+        await loadBooks();
+    } catch (error) {
+        console.error('Error marking book as complete:', error.message);
+    }
+}
+
+// Add event listener for the checkbox
+document.getElementById('completeBookCheckbox').addEventListener('change', function() {
+    const bookId = this.dataset.bookId;
+    if (bookId) {
+        markBookAsComplete(bookId, this.checked);
+    }
+});
