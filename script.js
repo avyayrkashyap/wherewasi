@@ -41,70 +41,177 @@ let allUsers = new Set();
 
 async function loadBooks() {
     try {
-        await updateUsersList(); // Update users list first
-        initializeUsernameDropdown(); // Initialize username dropdown
-        await filterAndDisplayBooks(); // Then filter and display books
-        initializeNoteScrolling(); // Initialize scrolling after books are loaded
+        const { data: books, error } = await supabaseClient
+            .from('books')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        // Update stats
+        updateStats(books);
+
+        // Display books
+        displayBooks(books);
     } catch (error) {
         console.error('Error loading books:', error.message);
     }
 }
 
-async function saveBook(bookData, editId = null) {
-    try {
-        if (editId) {
-            // Update existing book
-            const { error } = await supabaseClient
-                .from('books')
-                .update({
-                    username: bookData.username,
-                    book_title: bookData.book_title,
-                    author: bookData.author,
-                    pages_read: bookData.pages_read,
-                    total_pages: bookData.total_pages,
-                    progress: bookData.progress,
-                    cover_url: bookData.cover_url
-                })
-                .eq('id', editId);
+function updateStats(books) {
+    const totalBooks = books.length;
+    const completedBooks = books.filter(book => book.progress === 100).length;
+    const totalPages = books.reduce((sum, book) => sum + book.pages_read, 0);
 
-            if (error) throw error;
-        } else {
-            // Insert new book
-            const { error } = await supabaseClient
-                .from('books')
-                .insert([{
-                    username: bookData.username,
-                    book_title: bookData.book_title,
-                    author: bookData.author,
-                    pages_read: bookData.pages_read,
-                    total_pages: bookData.total_pages,
-                    progress: bookData.progress,
-                    cover_url: bookData.cover_url
-                }]);
-
-            if (error) throw error;
-        }
-
-        // Reload books after save
-        await loadBooks();
-    } catch (error) {
-        console.error('Error saving book:', error.message);
-    }
+    document.getElementById('totalBooks').textContent = totalBooks;
+    document.getElementById('completedBooks').textContent = completedBooks;
+    document.getElementById('totalPages').textContent = totalPages;
 }
 
-async function deleteBook(id) {
+function displayBooks(books) {
+    const booksGrid = document.getElementById('booksGrid');
+    booksGrid.innerHTML = '';
+
+    books.forEach(book => {
+        const bookElement = document.createElement('div');
+        bookElement.className = 'book-card';
+        bookElement.innerHTML = `
+            <div class="book-cover">
+                ${book.cover_url ? 
+                    `<img src="${book.cover_url}" alt="${book.book_title}">` :
+                    `<div class="no-cover">${book.book_title.charAt(0)}</div>`
+                }
+            </div>
+            <div class="book-info">
+                <h3>${book.book_title}</h3>
+                <p class="author">by ${book.author}</p>
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${book.progress}%"></div>
+                    </div>
+                    <p>${book.pages_read} of ${book.total_pages} pages</p>
+                </div>
+                <div class="book-meta">
+                    <span class="reader">
+                        <span class="material-icons">person_outline</span>
+                        ${book.username}
+                    </span>
+                    <span class="date">
+                        <span class="material-icons">calendar_today</span>
+                        ${new Date(book.created_at).toLocaleDateString()}
+                    </span>
+                </div>
+            </div>
+            <div class="book-actions">
+                <button class="action-btn note-btn" data-id="${book.id}">
+                    <span class="material-icons">note_add</span>
+                </button>
+                <button class="action-btn edit-btn" data-id="${book.id}">
+                    <span class="material-icons">edit</span>
+                </button>
+                <button class="action-btn delete-btn" data-id="${book.id}">
+                    <span class="material-icons">delete</span>
+                </button>
+            </div>
+        `;
+
+        // Add event listeners for the action buttons
+        bookElement.querySelector('.note-btn').addEventListener('click', () => handleNote(book.id));
+        bookElement.querySelector('.edit-btn').addEventListener('click', () => handleEdit(book.id));
+        bookElement.querySelector('.delete-btn').addEventListener('click', () => handleDelete(book.id));
+
+        booksGrid.appendChild(bookElement);
+    });
+}
+
+async function handleNote(bookId) {
     try {
-        const { error } = await supabaseClient
+        const { data: book, error } = await supabaseClient
             .from('books')
-            .delete()
-            .eq('id', id);
+            .select('notes, book_title')
+            .eq('id', bookId)
+            .single();
 
         if (error) throw error;
 
-        // Reload books after delete
-        await loadBooks();
+        document.getElementById('noteBookId').value = bookId;
+        document.getElementById('noteBookTitle').textContent = book.book_title;
+        
+        // Load existing notes
+        const notesContainer = document.getElementById('notesContainer');
+        notesContainer.innerHTML = '';
+        
+        if (book.notes) {
+            try {
+                const notes = JSON.parse(book.notes);
+                if (Array.isArray(notes)) {
+                    notes.forEach(note => {
+                        addNoteToContainer(note.text, note.timestamp);
+                    });
+                }
+            } catch (e) {
+                // If notes is not JSON, treat it as a single note
+                addNoteToContainer(book.notes);
+            }
+        }
+
+        openModal('noteModal');
     } catch (error) {
-        console.error('Error deleting book:', error.message);
+        console.error('Error loading notes:', error.message);
+    }
+}
+
+function addNoteToContainer(text, timestamp) {
+    const noteContainer = document.createElement('div');
+    noteContainer.className = 'note-container';
+    noteContainer.innerHTML = `
+        <textarea class="note-textarea">${text}</textarea>
+        ${timestamp ? `<div class="note-timestamp">${new Date(timestamp).toLocaleDateString()}</div>` : ''}
+    `;
+    document.getElementById('notesContainer').appendChild(noteContainer);
+}
+
+async function handleEdit(bookId) {
+    try {
+        const { data: book, error } = await supabaseClient
+            .from('books')
+            .select('*')
+            .eq('id', bookId)
+            .single();
+
+        if (error) throw error;
+
+        // Populate form with book data
+        document.getElementById('editIndex').value = bookId;
+        document.getElementById('username').value = book.username;
+        document.getElementById('bookSearch').value = book.book_title;
+        document.getElementById('author').value = book.author;
+        document.getElementById('pagesRead').value = book.pages_read;
+        document.getElementById('totalPages').value = book.total_pages;
+        document.getElementById('coverUrl').value = book.cover_url || '';
+        document.getElementById('modalTitle').textContent = 'Edit Book';
+
+        openModal('bookModal');
+    } catch (error) {
+        console.error('Error loading book for edit:', error.message);
+    }
+}
+
+async function handleDelete(bookId) {
+    if (confirm('Are you sure you want to delete this book?')) {
+        try {
+            const { error } = await supabaseClient
+                .from('books')
+                .delete()
+                .eq('id', bookId);
+
+            if (error) throw error;
+
+            // Reload books after deletion
+            loadBooks();
+        } catch (error) {
+            console.error('Error deleting book:', error.message);
+        }
     }
 }
 
@@ -153,69 +260,6 @@ function createNoteElement() {
     
     noteContainer.appendChild(textarea);
     return noteContainer;
-}
-
-async function handleNote(e) {
-    const id = e.currentTarget.dataset.id;
-    try {
-        const { data, error } = await supabaseClient
-            .from('books')
-            .select('notes, book_title, progress')
-            .eq('id', id)
-            .single();
-
-        if (error) throw error;
-
-        document.getElementById('noteBookTitle').textContent = data.book_title;
-        const notesContainer = document.getElementById('notesContainer');
-        notesContainer.innerHTML = ''; // Clear existing notes
-
-        // Update checkbox state
-        const completeCheckbox = document.getElementById('completeBookCheckbox');
-        completeCheckbox.dataset.bookId = id;
-        completeCheckbox.checked = data.progress === 100;
-
-        // Handle both old and new note formats
-        let existingNotes = [];
-        if (data.notes) {
-            try {
-                // Try to parse as JSON array
-                existingNotes = JSON.parse(data.notes);
-                if (!Array.isArray(existingNotes)) {
-                    // If it's JSON but not an array, convert old format to new
-                    existingNotes = [{
-                        text: data.notes,
-                        timestamp: new Date().toISOString()
-                    }];
-                }
-            } catch (parseError) {
-                // If parsing fails, it's an old string format
-                existingNotes = [{
-                    text: data.notes,
-                    timestamp: new Date().toISOString()
-                }];
-            }
-        }
-        
-        // Add existing notes in reverse chronological order
-        existingNotes.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
-            .forEach(note => {
-                const noteElement = createNoteElement();
-                noteElement.querySelector('textarea').value = note.text;
-                noteElement.dataset.timestamp = note.timestamp;
-                notesContainer.appendChild(noteElement);
-            });
-
-        // If no notes exist, create one empty note
-        if (existingNotes.length === 0) {
-            notesContainer.appendChild(createNoteElement());
-        }
-
-        document.getElementById('noteBookId').value = id;
-        openModal('noteModal');
-    } catch (error) {
-        console.error('Error loading notes:', error.message);
-    }
 }
 
 document.getElementById('noteForm').addEventListener('submit', async function(e) {
@@ -390,49 +434,6 @@ function displayEntries(entries) {
     });
 }
 
-function handleEdit(e) {
-    const id = e.currentTarget.dataset.id;
-    loadBookForEdit(id);
-}
-
-async function loadBookForEdit(id) {
-    try {
-        const { data, error } = await supabaseClient
-            .from('books')
-            .select('*')
-            .eq('id', id)
-            .single();
-
-        if (error) throw error;
-
-        // Set the edit index
-        document.getElementById('editIndex').value = id;
-
-        // Populate form with existing data
-        document.getElementById('username').value = data.username;
-        document.getElementById('bookSearch').value = data.book_title;
-        document.getElementById('author').value = data.author;
-        document.getElementById('pagesRead').value = data.pages_read;
-        document.getElementById('totalPages').value = data.total_pages;
-        document.getElementById('coverUrl').value = data.cover_url || '';
-
-        // Update modal title
-        document.getElementById('modalTitle').textContent = 'Edit Book';
-        
-        // Show modal
-        openModal('bookModal');
-    } catch (error) {
-        console.error('Error loading book for edit:', error.message);
-    }
-}
-
-function handleDelete(e) {
-    if (confirm('Are you sure you want to delete this book?')) {
-        const id = e.currentTarget.dataset.id;
-        deleteBook(id);
-    }
-}
-
 window.onclick = function(event) {
     const modal = document.getElementById('bookModal');
     if (event.target === modal) {
@@ -455,8 +456,7 @@ supabaseClient
     .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'books' }, 
         payload => {
-            updateUsersList();
-            filterAndDisplayBooks();
+            loadBooks();
         }
     )
     .subscribe();
@@ -626,7 +626,7 @@ async function filterAndDisplayBooks() {
 
         // Filter books by active users
         const filteredBooks = data.filter(book => activeUsers.has(book.username));
-        displayEntries(filteredBooks);
+        displayBooks(filteredBooks);
     } catch (error) {
         console.error('Error filtering books:', error.message);
     }

@@ -3,138 +3,141 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Book Reading Tracker</title>
-    <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <title>Reading Tracker</title>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="trial.css">
     <!-- Add Supabase with specific version -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
     <!-- Load config before main script -->
     <script src="config.js"></script>
-    <script src="script.js" defer></script>
 </head>
 <body>
     <div class="container">
-        <header>
-            <div class="title-row">
-                <h1><b>Now where was I?</b></h1>
-                <button id="addBookBtn" class="fab">
-                    <span class="material-icons">add</span>
-                </button>
-            </div>
-            <div class="filter-row">
-                <div class="user-filter">
-                    <div class="filter-chip" id="userFilterChip">
-                        <span class="material-icons">group</span>
-                        Users
-                        <span class="material-icons">arrow_drop_down</span>
-                    </div>
-                    <div class="filter-dropdown" id="userFilterDropdown">
-                        <div class="filter-search">
-                            <input type="text" id="userSearchInput" placeholder="Search users...">
-                        </div>
-                        <div class="filter-options" id="userFilterOptions">
-                            <!-- User checkboxes will be populated here -->
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <header class="glass-header">
+            <h1>Now where was I?</h1>
+            <button id="addBookBtn" class="glass-button">
+                <span class="material-icons">add</span>
+                Add Book
+            </button>
         </header>
 
-        <div id="entries" class="book-grid"></div>
+        <div class="stats-container">
+            <div class="glass-card stat-card">
+                <div class="stat-number" id="totalBooks">0</div>
+                <div class="stat-label">Total Books</div>
+            </div>
+            <div class="glass-card stat-card">
+                <div class="stat-number" id="completedBooks">0</div>
+                <div class="stat-label">Completed</div>
+            </div>
+            <div class="glass-card stat-card">
+                <div class="stat-number" id="totalPages">0</div>
+                <div class="stat-label">Pages Read</div>
+            </div>
+        </div>
+
+        <div class="books-container" id="booksGrid">
+            <!-- Books will be dynamically added here -->
+        </div>
     </div>
 
-    <!-- Add this right after your <body> tag -->
     <div id="modalBackdrop" class="modal-backdrop"></div>
 
-    <!-- Update your existing modals -->
-    <div id="bookModal" class="modal">
+    <!-- Book Modal -->
+    <div id="bookModal" class="glass-modal">
         <div class="modal-content">
             <div class="modal-header">
                 <h2 id="modalTitle">Add New Book</h2>
-                <span class="material-icons close-modal">close</span>
+                <button class="close-modal glass-button-icon">
+                    <span class="material-icons">close</span>
+                </button>
             </div>
-            <form id="bookForm">
-                <input type="hidden" id="editIndex" value="">
-                <input type="hidden" id="coverUrl" value="">
-                <div class="form-group">
-                    <div class="username-input-container">
-                        <input type="text" id="username" required>
-                        <label for="username">Your Name</label>
-                        <div id="usernameDropdown" class="username-dropdown">
-                            <!-- Existing users will be populated here -->
+            
+            <div class="modal-content-scrollable">
+                <form id="bookForm" class="glass-form">
+                    <input type="hidden" id="editIndex" value="">
+                    <input type="hidden" id="coverUrl" value="">
+                    
+                    <div class="form-group">
+                        <div class="username-input-container">
+                            <input type="text" id="username" required class="glass-input">
+                            <label for="username">Your Name</label>
+                            <div id="usernameDropdown" class="glass-dropdown">
+                                <!-- Existing users will be populated here -->
+                            </div>
                         </div>
                     </div>
-                </div>
-                
-                <div class="form-group">
-                    <input type="text" id="bookSearch" required>
-                    <label for="bookSearch">Book Title</label>
-                    <div id="searchResults" class="search-results"></div>
-                </div>
-                
-                <div class="form-group">
-                    <input type="text" id="author" required>
-                    <label for="author">Author</label>
-                </div>
-                
-                <div class="form-group pages-group">
-                    <div>
-                        <input type="number" id="pagesRead" required min="0">
-                        <label for="pagesRead">Pages Read</label>
+                    
+                    <div class="form-group">
+                        <input type="text" id="bookSearch" required class="glass-input">
+                        <label for="bookSearch">Book Title</label>
+                        <div id="searchResults" class="glass-dropdown"></div>
                     </div>
-                    <div>
-                        <input type="number" id="totalPages" required min="1">
-                        <label for="totalPages">Total Pages</label>
+                    
+                    <div class="form-group">
+                        <input type="text" id="author" required class="glass-input">
+                        <label for="author">Author</label>
                     </div>
-                </div>
-                
-                <button type="submit" class="submit-btn">Save Book</button>
-            </form>
+                    
+                    <div class="form-group pages-group">
+                        <div>
+                            <input type="number" id="pagesRead" required min="0" class="glass-input">
+                            <label for="pagesRead">Pages Read</label>
+                        </div>
+                        <div>
+                            <input type="number" id="bookTotalPages" required min="1" class="glass-input">
+                            <label for="bookTotalPages">Total Pages</label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="modal-footer">
+                <button type="submit" form="bookForm" class="glass-button submit-btn">Save Book</button>
+            </div>
         </div>
     </div>
 
-    <div id="noteModal" class="modal">
+    <!-- Notes Modal -->
+    <div id="noteModal" class="glass-modal">
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Notes</h2>
-                <span class="material-icons close-modal">close</span>
+                <button class="close-modal glass-button-icon">
+                    <span class="material-icons">close</span>
+                </button>
             </div>
-            <form id="noteForm">
-                <input type="hidden" id="noteBookId">
-                <h3 id="noteBookTitle" class="note-book-title"></h3>
-                
-                <div class="modal-content-scrollable">
-                    <button type="button" id="addNoteBtn" class="add-note-btn">
-                        <span class="material-icons">add</span>
-                        New Note
-                    </button>
-                    
+            
+            <div class="modal-content-scrollable">
+                <form id="noteForm" class="glass-form">
+                    <input type="hidden" id="noteBookId">
+                    <h3 id="noteBookTitle" class="note-book-title"></h3>
                     <div id="notesContainer" class="notes-container">
                         <!-- Notes will be dynamically added here -->
                     </div>
+                </form>
+            </div>
+            
+            <div class="modal-footer">
+                <div class="modal-actions">
+                    <button type="button" id="addNoteBtn" class="glass-button add-note-btn">
+                        <span class="material-icons">add</span>
+                        New Note
+                    </button>
+                    <button type="submit" form="noteForm" class="glass-button submit-btn">Save All Notes</button>
                 </div>
-                
-                <div class="modal-footer">
-                    <div class="complete-checkbox">
-                        <label class="mdc-checkbox">
-                            <input type="checkbox" id="completeBookCheckbox" class="mdc-checkbox__native-control">
-                            <div class="mdc-checkbox__background">
-                                <svg class="mdc-checkbox__checkmark" viewBox="0 0 28 28">
-                                    <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
-                                </svg>
-                                <div class="mdc-checkbox__mixedmark"></div>
-                            </div>
-                            <div class="mdc-checkbox__ripple"></div>
-                        </label>
-                        <label for="completeBookCheckbox" class="checkbox-label">
-                            Mark as Complete
-                        </label>
-                    </div>
-                    <button type="submit" class="submit-btn">Save All Notes</button>
+                <div class="complete-checkbox">
+                    <label class="glass-checkbox">
+                        <input type="checkbox" id="completeBookCheckbox">
+                        <span class="checkmark"></span>
+                        <span class="checkbox-label">Mark as Complete</span>
+                    </label>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
+
+    <script src="trial.js"></script>
 </body>
-</html> 
+</html>
