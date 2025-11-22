@@ -1,0 +1,687 @@
+:root {
+    --wood-primary: #8B4513;
+    --wood-dark: #5D2906;
+    --wood-light: #A0522D;
+    --wall-color: #1a1a1a;
+    /* Dark background */
+    --text-color: #e0e0e0;
+    /* Light text */
+    --shelf-depth: 20px;
+    --book-height: 200px;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--wall-color);
+    color: var(--text-color);
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+.room-container {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.shelf-header {
+    text-align: center;
+    margin-bottom: 40px;
+    position: relative;
+}
+
+.shelf-header h1 {
+    font-family: 'Patrick Hand', cursive;
+    font-size: 3rem;
+    color: #deb887;
+    /* Burlywood - lighter wood color for text */
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* Header Actions */
+.header-actions {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    height: 60px;
+}
+
+.back-link {
+    position: absolute;
+    left: 0;
+    text-decoration: none;
+    color: #deb887;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.wood-btn {
+    background: var(--wood-primary);
+    color: #f4e4bc;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    transition: transform 0.1s, background 0.2s;
+}
+
+.wood-btn:hover {
+    background: var(--wood-light);
+    transform: translateY(-1px);
+}
+
+.wood-btn:active {
+    transform: translateY(1px);
+}
+
+.book-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 10px;
+}
+
+/* Edit Button */
+.edit-link-btn {
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.9rem;
+    padding: 5px;
+    border-radius: 4px;
+}
+
+.edit-link-btn:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: #333;
+}
+
+.delete-link-btn {
+    background: none;
+    border: none;
+    color: #d9534f;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.9rem;
+    padding: 5px;
+    border-radius: 4px;
+}
+
+.delete-link-btn:hover {
+    background: rgba(217, 83, 79, 0.1);
+    color: #c9302c;
+}
+
+/* Add Note Section */
+.add-note-container {
+    margin-bottom: 20px;
+    background: rgba(0, 0, 0, 0.02);
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px dashed #ccc;
+}
+
+.add-note-container textarea {
+    width: 100%;
+    height: 60px;
+    border: none;
+    background: transparent;
+    font-family: 'Patrick Hand', cursive;
+    font-size: 1.2rem;
+    resize: none;
+    outline: none;
+    color: #2c3e50;
+}
+
+.wood-btn-small {
+    background: var(--wood-primary);
+    color: #f4e4bc;
+    border: none;
+    padding: 4px 10px;
+    border-radius: 3px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.8rem;
+    cursor: pointer;
+    margin-top: 5px;
+    float: right;
+}
+
+/* Form Modal */
+.form-modal-content {
+    background: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    position: relative;
+    color: #333;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.close-form-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.5rem;
+    color: #666;
+}
+
+.book-form .form-group {
+    margin-bottom: 15px;
+    position: relative;
+}
+
+.book-form label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    font-size: 0.9rem;
+    color: #555;
+}
+
+.book-form input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-family: 'Poppins', sans-serif;
+}
+
+.form-row {
+    display: flex;
+    gap: 15px;
+}
+
+.form-row .form-group {
+    flex: 1;
+}
+
+.form-actions {
+    margin-top: 20px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* Search Dropdown */
+.search-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 0 0 4px 4px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 100;
+    display: none;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.search-result-item {
+    padding: 10px;
+    cursor: pointer;
+    display: flex;
+    gap: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.search-result-item:hover {
+    background: #f5f5f5;
+}
+
+.search-result-item img {
+    width: 40px;
+    height: 60px;
+    object-fit: cover;
+}
+
+/* Bookshelf Structure */
+.bookshelf-container {
+    display: flex;
+    flex-direction: column;
+    gap: 60px;
+    padding-bottom: 60px;
+}
+
+.user-shelf-group {
+    position: relative;
+    cursor: grab;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.user-shelf-group:active {
+    cursor: grabbing;
+}
+
+.user-shelf-group.dragging {
+    opacity: 0.5;
+    transform: scale(0.98);
+}
+
+.user-label {
+    position: absolute;
+    top: -35px;
+    left: 20px;
+    background: #f4e4bc;
+    /* Parchment color */
+    color: #5D2906;
+    /* Dark wood color for text */
+    padding: 5px 15px;
+    border-radius: 4px;
+    font-family: 'Patrick Hand', cursive;
+    font-size: 1.2rem;
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+    transform: rotate(-2deg);
+    pointer-events: none;
+    /* Let clicks pass through to the shelf for dragging */
+}
+
+.shelf {
+    height: 20px;
+    background: linear-gradient(to bottom, var(--wood-light), var(--wood-primary));
+    position: relative;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+    border-radius: 2px;
+    margin-top: var(--book-height);
+    /* Space for books */
+}
+
+/* Shelf depth effect */
+.shelf::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 10px;
+    right: 10px;
+    height: 15px;
+    background: var(--wood-dark);
+    clip-path: polygon(0 0, 100% 0, 98% 100%, 2% 100%);
+}
+
+/* Books on Shelf */
+.books-row {
+    position: absolute;
+    bottom: 20px;
+    /* Sit on top of the shelf */
+    left: 40px;
+    right: 40px;
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+    height: var(--book-height);
+    perspective: 1000px;
+    overflow-x: auto;
+    /* Enable horizontal scrolling */
+    overflow-y: hidden;
+    padding-bottom: 5px;
+    /* Space for scrollbar */
+
+    /* Scrollbar styling */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+.books-row::-webkit-scrollbar {
+    height: 6px;
+}
+
+.books-row::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.books-row::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+}
+
+.book-spine {
+    width: 60px;
+    /* Increased width for better tapability */
+    min-width: 60px;
+    /* Prevent shrinking */
+    height: 180px;
+    /* Default height */
+    background-color: #4a90e2;
+    position: relative;
+    border-radius: 3px 3px 0 0;
+    box-shadow:
+        inset 4px 0 10px rgba(0, 0, 0, 0.1),
+        /* Spine curve left */
+        inset -4px 0 10px rgba(0, 0, 0, 0.1),
+        /* Spine curve right */
+        2px 0 5px rgba(0, 0, 0, 0.2);
+    /* Drop shadow */
+    cursor: pointer;
+    transition: transform 0.2s ease, margin-bottom 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.9rem;
+    font-weight: 500;
+    padding: 10px 0;
+    overflow: hidden;
+    transform-origin: bottom center;
+}
+
+.book-spine:hover {
+    transform: scale(1.05) translateY(-5px);
+    z-index: 10;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.book-spine span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-height: 90%;
+}
+
+/* Modal & Open Book */
+.modal-backdrop {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 1000;
+    backdrop-filter: blur(5px);
+}
+
+.modal-backdrop.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.book-modal-container {
+    perspective: 1500px;
+}
+
+.open-book {
+    width: 800px;
+    height: 500px;
+    background: #fdfbf7;
+    /* Paper color */
+    display: flex;
+    position: relative;
+    box-shadow:
+        0 20px 50px rgba(0, 0, 0, 0.5),
+        inset 0 0 50px rgba(0, 0, 0, 0.1);
+    border-radius: 5px;
+    transform-style: preserve-3d;
+    animation: openBook 0.6s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+@keyframes openBook {
+    from {
+        transform: rotateX(20deg) scale(0.8);
+        opacity: 0;
+    }
+
+    to {
+        transform: rotateX(0) scale(1);
+        opacity: 1;
+    }
+}
+
+.book-page {
+    flex: 1;
+    padding: 40px;
+    position: relative;
+    overflow-y: auto;
+}
+
+/* Center binding shadow */
+.open-book::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 40px;
+    transform: translateX(-50%);
+    background: linear-gradient(to right,
+            rgba(0, 0, 0, 0.05),
+            rgba(0, 0, 0, 0.2) 45%,
+            rgba(0, 0, 0, 0.2) 55%,
+            rgba(0, 0, 0, 0.05));
+    z-index: 10;
+    pointer-events: none;
+}
+
+.left-page {
+    border-right: 1px solid #e0e0e0;
+}
+
+.book-details-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 20px;
+}
+
+.book-cover-display {
+    width: 140px;
+    height: 210px;
+    background: #eee;
+    box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);
+    background-size: cover;
+    background-position: center;
+    border-radius: 2px;
+}
+
+.book-meta-info h2 {
+    font-family: 'Poppins', sans-serif;
+    font-size: 1.5rem;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.book-meta-info .author {
+    color: #666;
+    font-style: italic;
+}
+
+.progress-section {
+    width: 100%;
+    margin-top: 20px;
+}
+
+.progress-bar {
+    height: 8px;
+    background: #eee;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 5px;
+}
+
+.progress-fill {
+    height: 100%;
+    background: #4caf50;
+    width: 0%;
+    transition: width 0.5s ease;
+}
+
+/* Handwritten Notes */
+.handwritten-notes {
+    font-family: 'Patrick Hand', cursive;
+    font-size: 1.4rem;
+    line-height: 1.6;
+    color: #2c3e50;
+    min-height: 300px;
+    background-image: linear-gradient(#e1e1e1 1px, transparent 1px);
+    background-size: 100% 2rem;
+    /* Line height matching */
+    padding-top: 0.2rem;
+}
+
+.note-entry {
+    margin-bottom: 20px;
+    position: relative;
+    padding-right: 20px;
+    /* Make space for delete button */
+}
+
+.note-date {
+    font-size: 0.9rem;
+    color: #888;
+    position: absolute;
+    right: 25px;
+    /* Moved left to avoid delete button */
+    top: -1.2rem;
+}
+
+.note-delete-btn {
+    position: absolute;
+    right: 0;
+    top: -1.2rem;
+    background: none;
+    border: none;
+    color: #d9534f;
+    cursor: pointer;
+    font-size: 1rem;
+    opacity: 0.5;
+    transition: opacity 0.2s;
+    padding: 0;
+}
+
+.note-delete-btn:hover {
+    opacity: 1;
+}
+
+.close-book-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #888;
+    padding: 5px;
+    border-radius: 50%;
+    transition: background 0.2s;
+}
+
+.close-book-btn:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: #333;
+}
+
+/* Responsive */
+@media (max-width: 850px) {
+    .header-actions {
+        flex-direction: column;
+        height: auto;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+
+    .back-link {
+        position: static;
+        transform: none;
+    }
+
+    .open-book {
+        width: 95%;
+        height: 80vh;
+        flex-direction: column;
+    }
+
+    .open-book::before {
+        display: none;
+    }
+
+    .left-page {
+        border-right: none;
+        border-bottom: 1px solid #e0e0e0;
+        flex: 0 0 auto;
+        padding: 20px;
+    }
+
+    .book-cover-display {
+        width: 100px;
+        height: 150px;
+    }
+
+    .book-details-header {
+        flex-direction: row;
+        text-align: left;
+        align-items: flex-start;
+    }
+
+    .book-meta-info {
+        flex: 1;
+    }
+
+    .right-page {
+        padding: 20px;
+    }
+
+    /* Mobile Shelf Adjustments */
+    .bookshelf-container {
+        gap: 40px;
+    }
+
+    .books-row {
+        left: 10px;
+        right: 10px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding-bottom: 10px;
+        /* Space for scrollbar if visible */
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Hide scrollbar but keep functionality */
+    .books-row::-webkit-scrollbar {
+        height: 4px;
+    }
+
+    .books-row::-webkit-scrollbar-thumb {
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 2px;
+    }
+
+    .user-label {
+        font-size: 1rem;
+        padding: 4px 10px;
+        top: -30px;
+        left: 10px;
+    }
+}

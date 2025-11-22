@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reading Tracker</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="trial.css">
+    <!-- Add Supabase with specific version -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
+    <!-- Load config before main script -->
+    <script src="config.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header class="glass-header">
+            <h1>Now where was I?</h1>
+            <button id="addBookBtn" class="glass-button">
+                <span class="material-icons">add</span>
+                Add Book
+            </button>
+        </header>
+
+        <div class="stats-container">
+            <div class="glass-card stat-card">
+                <div class="stat-number" id="totalBooks">0</div>
+                <div class="stat-label">Total Books</div>
+            </div>
+            <div class="glass-card stat-card">
+                <div class="stat-number" id="completedBooks">0</div>
+                <div class="stat-label">Completed</div>
+            </div>
+            <div class="glass-card stat-card">
+                <div class="stat-number" id="totalPages">0</div>
+                <div class="stat-label">Pages Read</div>
+            </div>
+        </div>
+
+        <div class="books-container" id="booksGrid">
+            <!-- Books will be dynamically added here -->
+        </div>
+    </div>
+
+    <div id="modalBackdrop" class="modal-backdrop"></div>
+
+    <!-- Book Modal -->
+    <div id="bookModal" class="glass-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Add New Book</h2>
+                <button class="close-modal glass-button-icon">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+            
+            <div class="modal-content-scrollable">
+                <form id="bookForm" class="glass-form">
+                    <input type="hidden" id="editIndex" value="">
+                    <input type="hidden" id="coverUrl" value="">
+                    
+                    <div class="form-group">
+                        <div class="username-input-container">
+                            <input type="text" id="username" required class="glass-input">
+                            <label for="username">Your Name</label>
+                            <div id="usernameDropdown" class="glass-dropdown">
+                                <!-- Existing users will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <input type="text" id="bookSearch" required class="glass-input">
+                        <label for="bookSearch">Book Title</label>
+                        <div id="searchResults" class="glass-dropdown"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <input type="text" id="author" required class="glass-input">
+                        <label for="author">Author</label>
+                    </div>
+                    
+                    <div class="form-group pages-group">
+                        <div>
+                            <input type="number" id="pagesRead" required min="0" class="glass-input">
+                            <label for="pagesRead">Pages Read</label>
+                        </div>
+                        <div>
+                            <input type="number" id="bookTotalPages" required min="1" class="glass-input">
+                            <label for="bookTotalPages">Total Pages</label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="modal-footer">
+                <button type="submit" form="bookForm" class="glass-button submit-btn">Save Book</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notes Modal -->
+    <div id="noteModal" class="glass-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Notes</h2>
+                <button class="close-modal glass-button-icon">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+            
+            <div class="modal-content-scrollable">
+                <form id="noteForm" class="glass-form">
+                    <input type="hidden" id="noteBookId">
+                    <h3 id="noteBookTitle" class="note-book-title"></h3>
+                    <div id="notesContainer" class="notes-container">
+                        <!-- Notes will be dynamically added here -->
+                    </div>
+                </form>
+            </div>
+            
+            <div class="modal-footer">
+                <div class="modal-actions">
+                    <button type="button" id="addNoteBtn" class="glass-button add-note-btn">
+                        <span class="material-icons">add</span>
+                        New Note
+                    </button>
+                    <button type="submit" form="noteForm" class="glass-button submit-btn">Save All Notes</button>
+                </div>
+                <div class="complete-checkbox">
+                    <label class="glass-checkbox">
+                        <input type="checkbox" id="completeBookCheckbox">
+                        <span class="checkmark"></span>
+                        <span class="checkbox-label">Mark as Complete</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="trial.js"></script>
+</body>
+</html>
