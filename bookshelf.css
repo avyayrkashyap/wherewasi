@@ -53,18 +53,6 @@ body {
     height: 60px;
 }
 
-.back-link {
-    position: absolute;
-    left: 0;
-    text-decoration: none;
-    color: #deb887;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    font-weight: 500;
-    transition: color 0.2s;
-}
-
 .wood-btn {
     background: var(--wood-primary);
     color: #f4e4bc;
